@@ -1,6 +1,6 @@
 <?php
 
-namespace zafarjonovich\PHPHelpers;
+namespace zafarjonovich\Yii2TelegramBotScelation;
 
 class BaseString
 {
