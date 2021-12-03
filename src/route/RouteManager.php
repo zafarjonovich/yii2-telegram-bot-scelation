@@ -5,22 +5,25 @@ namespace zafarjonovich\Yii2TelegramBotScelation\route;
 
 
 use yii\helpers\ArrayHelper;
+use zafarjonovich\Yii2TelegramBotScelation\calls\RouteManagerCall;
 
 class RouteManager
 {
     private $routes = [];
 
-    const ROUTE_PARAM_UNIQUE = 'u';
-    const ROUTE_PARAM_PARAMS = 'p';
+    public static function getKey($action,$method)
+    {
+        return sprintf('%s::%s',$action,$method);
+    }
 
     /**
      * @param $key
      * @param $action
      * @param $method
      */
-    public function add($key,$action,$method)
+    public function add($action,$method)
     {
-        $this->routes[$key] = [
+        $this->routes[self::getKey($action,$method)] = [
             'unique' => count($this->routes),
             'action' => $action,
             'method' => $method
@@ -42,28 +45,18 @@ class RouteManager
      * @return array
      * @throws \Exception
      */
-    public function getShortedRoute($key,$params = null)
+    public function getShortedRoute($action,$method,$params = null)
     {
-        if(!$this->hasRoute($key)) {
+        if(!$this->hasRoute(self::getKey($action,$method))) {
             throw new \Exception('Route not found');
         }
 
-        $route = $this->routes[$key];
+        $route = $this->routes[self::getKey($action,$method)];
 
-        return [
-            self::ROUTE_PARAM_UNIQUE => $route['unique'],
-            self::ROUTE_PARAM_PARAMS => $params
-        ];
-    }
-
-    /**
-     * @param $route
-     * @return bool
-     */
-    public function validRoute($route)
-    {
-        return !isset($route[self::ROUTE_PARAM_UNIQUE],$route[self::ROUTE_PARAM_PARAMS]) ||
-            $route[self::ROUTE_PARAM_UNIQUE]  >= count($this->routes);
+        return new RouteManagerCall([
+            RouteManagerCall::ROUTE_PARAM_UNIQUE => $route['unique'],
+            RouteManagerCall::ROUTE_PARAM_PARAMS => $params
+        ]);
     }
 
     /**
@@ -72,7 +65,7 @@ class RouteManager
      */
     public function getRouteByUnique($unique)
     {
-        $routes = ArrayHelper::map($routes,'unique',function ($route) {
+        $routes = ArrayHelper::map($this->routes,'unique',function ($route) {
             return $route;
         });
 
@@ -84,14 +77,10 @@ class RouteManager
      * @return Route
      * @throws \Exception
      */
-    public function initRoute($route)
+    public function initRoute(RouteManagerCall $call)
     {
-        if(!$this->validRoute($route)) {
-            throw new \Exception('Invalid route');
-        }
+        $routeConfiguration = $this->getRouteByUnique($call->getUnique());
 
-        $routeConfiguration = $this->getRouteByUnique($route[self::ROUTE_PARAM_UNIQUE]);
-
-        return new Route($routeConfiguration,$route[self::ROUTE_PARAM_PARAMS]);
+        return new Route($routeConfiguration,$call->getParams());
     }
 }

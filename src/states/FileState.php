@@ -45,6 +45,6 @@ class FileState extends State
 
     public function save()
     {
-        return file_put_contents($this->filePath,json_encode($this->stateData));
+        return file_put_contents($this->filePath,json_encode($this->stateData,JSON_PRETTY_PRINT));
     }
 }

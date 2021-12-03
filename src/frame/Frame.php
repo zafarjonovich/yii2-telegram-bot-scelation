@@ -4,7 +4,7 @@ namespace zafarjonovich\Yii2TelegramBotScelation\frame;
 
 use yii\base\BaseObject;
 
-class Frame extends BaseObject
+class Frame extends BaseObject implements FrameInterface
 {
     private $scelation;
 

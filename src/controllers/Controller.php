@@ -2,8 +2,11 @@
 
 namespace zafarjonovich\Yii2TelegramBotScelation\controllers;
 
+use app\actions\UserAction;
+use yii\web\Response;
 use zafarjonovich\Telegram\BotApi;
 use zafarjonovich\Telegram\update\Update;
+use zafarjonovich\Yii2TelegramBotScelation\calls\RouteManagerCall;
 use zafarjonovich\Yii2TelegramBotScelation\route\Route;
 use zafarjonovich\Yii2TelegramBotScelation\route\RouteManager;
 use zafarjonovich\Yii2TelegramBotScelation\states\FileState;
@@ -75,6 +78,8 @@ class Controller extends \yii\web\Controller
         $this->api = new BotApi($this->getToken());
 
         $this->routeManager = new RouteManager();
+
+        $this->response->format = Response::FORMAT_JSON;
     }
 
     public function otherCondition(Update $update)
@@ -86,6 +91,11 @@ class Controller extends \yii\web\Controller
         return true;
     }
 
+    public function afterHandle()
+    {
+
+    }
+
     public function actionHandle()
     {
         if($this->loadUpdate() && $this->canHandle()) {
@@ -94,10 +104,11 @@ class Controller extends \yii\web\Controller
             $update = $this->api->update;
 
             try {
-                if(
-                    $update->isCallbackQuery() &&
-                    $route = $this->routeManager->initRoute(json_decode($update->getCallbackQuery()->getData()))
-                ) {
+                if($update->isCallbackQuery()) {
+                    $call = RouteManagerCall::parse($update->getCallbackQuery()->getData());
+
+                    $route = $this->routeManager->initRoute($call);
+
                     $action = $this->createAction($route->getAction());
 
                     if($action === null) {
@@ -110,7 +121,6 @@ class Controller extends \yii\web\Controller
                     ]);
 
                 } else {
-
                     $this->otherCondition($update);
                 }
             } catch (\Exception $exception) {
@@ -118,6 +128,8 @@ class Controller extends \yii\web\Controller
             }
 
             $this->state->save();
+
+            $this->afterHandle();
         }
 
         return 'Running';
