@@ -25,6 +25,11 @@ class Frame extends BaseObject implements FrameInterface
         return $this->scelation;
     }
 
+    public function setOptions($options)
+    {
+        $this->options = $options;
+    }
+
     public function getOptions()
     {
         return $this->options;
