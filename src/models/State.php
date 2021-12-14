@@ -23,18 +23,6 @@ class State extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return 'state';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rules()
-    {
-        return [
-            [['chat_id', 'state'], 'required'],
-            [['chat_id', 'status'], 'integer'],
-            [['state', 'created_at', 'updated_at'], 'safe'],
-        ];
+        return 'yii2_telegram_bot_scelation_state';
     }
 }

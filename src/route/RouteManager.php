@@ -11,6 +11,7 @@ class RouteManager
 {
     private $routes = [];
 
+
     public static function getKey($action,$method)
     {
         return sprintf('%s::%s',$action,$method);
@@ -55,7 +56,7 @@ class RouteManager
 
         return new RouteManagerCall([
             RouteManagerCall::ROUTE_PARAM_UNIQUE => $route['unique'],
-            RouteManagerCall::ROUTE_PARAM_PARAMS => $params
+            RouteManagerCall::ROUTE_PARAM_PARAMS => is_null($params) ? null : (string)$params
         ]);
     }
 

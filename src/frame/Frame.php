@@ -3,12 +3,18 @@
 namespace zafarjonovich\Yii2TelegramBotScelation\frame;
 
 use yii\base\BaseObject;
+use zafarjonovich\Yii2TelegramBotScelation\route\RouteManager;
 
 class Frame extends BaseObject implements FrameInterface
 {
     private $scelation;
 
     private $options = [];
+
+    /**
+     * @var RouteManager $routeManager
+     */
+    public $routeManager;
 
     protected function setScelation($scelation)
     {

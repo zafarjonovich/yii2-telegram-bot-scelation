@@ -4,6 +4,7 @@
 namespace zafarjonovich\Yii2TelegramBotScelation\states;
 
 use yii\base\BaseObject;
+use yii\helpers\ArrayHelper;
 
 /**
  * @property string $unique
@@ -13,17 +14,63 @@ abstract class State extends BaseObject
 {
     public $unique;
 
-    public function init()
+    protected $state;
+
+    /**
+     * @param $key
+     * @return bool
+     */
+    public function has($key)
     {
+        return ArrayHelper::keyExists($key,$this->state);
     }
 
-    abstract public function has($key);
+    /**
+     * @param $key
+     * @return mixed
+     * @throws \Exception
+     */
+    public function get($key,$default = null)
+    {
+        return ArrayHelper::getValue($this->state,$key,$default);
+    }
 
-    abstract public function get($key);
+    /**
+     * @param $key
+     * @param $value
+     */
+    public function set($key, $value)
+    {
+        ArrayHelper::setValue($this->state,$key,$value);
+    }
 
-    abstract public function unset($key);
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed|null
+     */
+    public function unset($key,$default = null)
+    {
+        return ArrayHelper::remove($this->state,$key);
+    }
 
-    abstract public function set($key,$value);
+    /**
+     * @param null $except
+     * @throws \Exception
+     */
+    public function flush($except = null)
+    {
+        if (is_array($except)) {
+            $state = [];
+            foreach ($except as $item)
+                if ($this->has($item))
+                    $state[$item] = $this->get($item);
+
+            $this->state = $state;
+        } else {
+            $this->state = [];
+        }
+    }
 
     abstract public function save();
 }

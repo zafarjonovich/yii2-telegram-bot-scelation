@@ -15,11 +15,11 @@ class DbState extends State
 
     public function init()
     {
-        $state = StateModel::findOne(['unique' => $this->unique]);
+        $state = StateModel::findOne(['chat_id' => $this->unique]);
 
         if($state === null) {
             $state = new StateModel([
-                'unique' => $this->unique,
+                'chat_id' => $this->unique,
                 'created_at' => date('Y-m-d H:i:s'),
                 'state' => []
             ]);
@@ -27,27 +27,14 @@ class DbState extends State
 
         $state->status = StateModel::STATUS_ACTIVE;
         $state->updated_at = date('Y-m-d H:i:s');
+        $this->state = $state->state;
 
         $this->stateModel = $state;
     }
 
-    public function has($key)
-    {
-        return isset($this->stateModel->state[$key]);
-    }
-
-    public function get($key)
-    {
-        return $this->stateModel->state[$key];
-    }
-
-    public function set($key, $value)
-    {
-        $this->stateModel->state[$key] = $value;
-    }
-
     public function save()
     {
+        $this->stateModel->state = $this->state;
         return $this->stateModel->save();
     }
 }

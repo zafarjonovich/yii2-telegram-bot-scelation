@@ -2,7 +2,7 @@
 
 namespace zafarjonovich\Yii2TelegramBotScelation\calls;
 
-use zafarjonovich\Telegram\helpers\Call;
+use zafarjonovich\Telegram\call\Call;
 
 /**
  * Class RouteManagerCall
@@ -28,7 +28,6 @@ class RouteManagerCall extends Call
     public static function needPropertyKeys()
     {
         return [
-            self::ROUTE_PARAM_PARAMS,
             self::ROUTE_PARAM_UNIQUE
         ];
     }
