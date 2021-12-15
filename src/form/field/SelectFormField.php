@@ -14,6 +14,8 @@ class SelectFormField extends Field
 {
     public $options = [];
 
+    const CALLBACL_QUERY_KEY = 'cqk';
+
     public function goBack()
     {
 
@@ -122,8 +124,8 @@ class SelectFormField extends Field
         if($this->isInlineKeyboard and $update->isCallbackQuery()){
             $data = json_decode($update->getCallbackQuery()->getData(),true);
 
-            if($data and isset($data[$this->name])){
-                return $data[$this->name];
+            if($data and isset($data[self::CALLBACL_QUERY_KEY])){
+                return $data[self::CALLBACL_QUERY_KEY];
             }
         }
 
@@ -152,7 +154,7 @@ class SelectFormField extends Field
         foreach ($this->options as $option) {
             foreach ($option as $item) {
                 if($this->isInlineKeyboard){
-                    $keyboard->addCallbackDataButton($item[1],json_encode([$this->name => $item[0]]));
+                    $keyboard->addCallbackDataButton($item[1],json_encode([self::CALLBACL_QUERY_KEY => $item[0]]));
                 }else{
                     $keyboard->addCustomButton($item[1]);
                 }

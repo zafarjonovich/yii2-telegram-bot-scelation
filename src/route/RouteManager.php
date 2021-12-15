@@ -11,6 +11,16 @@ class RouteManager
 {
     private $routes = [];
 
+    /**
+     * RouteManager constructor.
+     * @param array $routes
+     */
+    public function __construct($routes = [])
+    {
+        foreach ($routes as $route) {
+            $this->add(...$route);
+        }
+    }
 
     public static function getKey($action,$method)
     {
