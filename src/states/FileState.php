@@ -25,4 +25,9 @@ class FileState extends State
     {
         return file_put_contents($this->filePath,json_encode($this->stateData,JSON_PRETTY_PRINT));
     }
+
+    public static function delete($unique)
+    {
+
+    }
 }

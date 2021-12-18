@@ -34,6 +34,8 @@ class Controller extends \yii\web\Controller
 
     public $hasUpdate = false;
 
+    public $throwException = true;
+
     /**
      * Telegram bot token
      *
@@ -104,57 +106,68 @@ class Controller extends \yii\web\Controller
     {
     }
 
+    public function catchException(\Exception $exception)
+    {
+    }
+
     public function actionHandle()
     {
-        if($this->loadUpdate()) {
+        try {
+            if($this->loadUpdate()) {
 
-            $this->state = \Yii::createObject($this->getStateManagerConfiguration($this->api->chat_id));
-            $update = $this->api->update;
-            $this->afterStateLoad();
+                $this->state = \Yii::createObject($this->getStateManagerConfiguration($this->api->from_id));
+                $update = $this->api->update;
+                $this->afterStateLoad();
 
-            if ($this->canHandle($update)) {
+                if ($this->canHandle($update)) {
 
-                try {
-                    if ($update->isCallbackQuery()) {
+                    try {
+                        if ($update->isCallbackQuery()) {
 
-                        $call = RouteManagerCall::parse($update->getCallbackQuery()->getData());
+                            $call = RouteManagerCall::parse($update->getCallbackQuery()->getData());
 
-                        $route = $this->routeManager->initRoute($call);
+                            $route = $this->routeManager->initRoute($call);
 
-                        $action = $this->createAction($route->getAction());
+                            $action = $this->createAction($route->getAction());
 
-                        if($action === null) {
-                            throw new \Exception('Invalid action');
+                            if($action === null) {
+                                throw new \Exception('Invalid action');
+                            }
+
+                            $action->runWithParams([
+                                'method' => $route->getMethod(),
+                                'params' => $route->getParams()
+                            ]);
                         }
+                    } catch (CallParseException $exception) {
 
-                        $action->runWithParams([
-                            'method' => $route->getMethod(),
-                            'params' => $route->getParams()
-                        ]);
+                    } catch (\Exception $exception) {
+                        throw $exception;
                     }
-                } catch (CallParseException $exception) {
 
-                } catch (\Exception $exception) {
-                    throw $exception;
+                    if (
+                        $update->isMessage() &&
+                        ($message = $update->getMessage()) &&
+                        $message->isText() &&
+                        strpos($message->getText(),'/start') !== false
+                    ) {
+                        $this->onStart(substr($message->getText(),6));
+                    } else {
+                        $this->otherCondition($update);
+                    }
+
+
+
+                    $this->state->save();
                 }
 
-                if (
-                    $update->isMessage() &&
-                    ($message = $update->getMessage()) &&
-                    $message->isText() &&
-                    strpos($message->getText(),'/start') !== false
-                ) {
-                    $this->onStart(substr($message->getText(),6));
-                } else {
-                    $this->otherCondition($update);
-                }
-
-
-
-                $this->state->save();
+                $this->afterHandle();
             }
+        } catch (\Exception $exception) {
+            $this->catchException($exception);
 
-            $this->afterHandle();
+            if ($this->throwException)
+                throw $exception;
         }
 
         return 'Running';

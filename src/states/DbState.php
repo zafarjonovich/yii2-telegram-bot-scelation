@@ -37,4 +37,11 @@ class DbState extends State
         $this->stateModel->state = $this->state;
         return $this->stateModel->save();
     }
+
+    public static function delete($unique)
+    {
+        $state = StateModel::findOne(['chat_id' => $unique]);
+
+        return $state->delete();
+    }
 }

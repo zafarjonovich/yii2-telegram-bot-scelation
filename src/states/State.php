@@ -73,4 +73,6 @@ abstract class State extends BaseObject
     }
 
     abstract public function save();
+
+    abstract public static function delete($unique);
 }
