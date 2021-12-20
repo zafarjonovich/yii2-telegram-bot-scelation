@@ -122,6 +122,11 @@ class FormAction extends \yii\base\Action
 
     public function run()
     {
+        static $callCount = 1;
+
+        if ($callCount > 1)
+            return;
+
         $fieldData = $this->model->getCurrentFormFieldData();
 
         $field = $this->createField($fieldData);
@@ -170,6 +175,8 @@ class FormAction extends \yii\base\Action
         $this->modelState = $this->model->state;
         $this->fieldState = $field->state;
         $this->fieldName = $field->name;
+
+        $callCount++;
     }
 
     protected function afterRun()

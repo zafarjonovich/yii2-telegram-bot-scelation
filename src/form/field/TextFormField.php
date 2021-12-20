@@ -74,7 +74,7 @@ class TextFormField extends Field
         $update = $this->telegramBotApi->update;
 
         if(!($update->isMessage() and $update->getMessage()->isText())){
-            return false;
+            return null;
         }
 
         $value = $update->getMessage()->getText();
