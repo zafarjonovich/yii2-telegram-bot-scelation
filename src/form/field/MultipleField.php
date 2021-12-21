@@ -15,10 +15,6 @@ class MultipleField extends Field
      */
     public $getter;
 
-    public $canSkip = false;
-
-    public $skipText = 'Skip';
-
     public $doneText = 'Done';
 
     public $acceptedText = 'Accepted';
@@ -48,6 +44,22 @@ class MultipleField extends Field
             $update->isMessage() and
             $update->getMessage()->isText() and
             $update->getMessage()->getText() == $this->buttonTextHome
+        ){
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isSkipped()
+    {
+        /** @var Update $update */
+        $update = $this->telegramBotApi->update;
+
+        if(
+            $update->isMessage() and
+            $update->getMessage()->isText() and
+            $update->getMessage()->getText() == $this->skipText
         ){
             return true;
         }
@@ -133,10 +145,6 @@ class MultipleField extends Field
         $keyboard = new Keyboard();
 
         $answers = $this->state['answers'];
-
-        if ($this->canSkip && empty($answers)) {
-            $keyboard->addCustomButton($this->skipText);
-        }
 
         if (count($answers)) {
             $keyboard->addCustomButton($this->doneText);

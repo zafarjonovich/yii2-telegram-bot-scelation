@@ -8,7 +8,10 @@ use zafarjonovich\Telegram\helpers\Call;
 
 abstract class Model extends \yii\base\Model
 {
-    public $state = [];
+    public $state = [
+        'filledFields' => []
+    ];
+
 
     public $hiddenInputs = [];
 
@@ -52,7 +55,7 @@ abstract class Model extends \yii\base\Model
 
     public function setValues($values)
     {
-        $this->setAttributes($values);
+        $this->setAttributes($values,false);
     }
 
     public function getValues()
@@ -66,7 +69,7 @@ abstract class Model extends \yii\base\Model
     public function getCurrentFormFieldData()
     {
         foreach ($this->formFields() as $formField)
-            if (!isset($this->{$formField['name']}))
+            if (!isset($this->state['filledFields'][$formField['name']]))
                 return $formField;
 
         return null;
@@ -88,11 +91,18 @@ abstract class Model extends \yii\base\Model
 
     public function isFilled()
     {
-        foreach ($this->formFields() as $formField)
-            if (!isset($this->{$formField['name']}))
+        foreach ($this->formFields() as $formField) {
+
+            if (!isset($this->state['filledFields'][$formField['name']]))
                 return false;
+        }
 
         return true;
+    }
+
+    public function filled($name)
+    {
+        $this->state['filledFields'][$name] = true;
     }
 
     public function unsetLastAnswer()
@@ -103,7 +113,9 @@ abstract class Model extends \yii\base\Model
 
         foreach ($fields as $field)
             if (isset($this->{$field['name']})) {
-                $this->{$field['name']} = null;
+                $name = $field['name'];
+                unset($this->state['filledFields'][$name]);
+                $this->{$name} = null;
                 return true;
             }
 

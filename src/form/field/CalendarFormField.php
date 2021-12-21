@@ -35,6 +35,21 @@ class CalendarFormField extends Field
 
     public $isInlineKeyboard = true;
 
+    /**
+     * @var array of locked days
+     *
+     * Example: $lockedDays = ['2021-12-23','2021-12-14'];
+     */
+    public $lockedDays = [];
+
+    public $lockBeforeNow = false;
+
+    /**
+     * @var int this number means if this number set this column will locks
+     * Example: $lockedColumnDayNumber = 1; Every monday will locks
+     * Example: $lockedColumnDayNumber = 5; Every friday will locks
+     */
+    public $lockedColumnDayNumber = 0;
 
     public function goBack(){
         $update = $this->telegramBotApi->update;
@@ -42,6 +57,18 @@ class CalendarFormField extends Field
         if($update->isCallbackQuery()){
             $data = json_decode($update->getCallbackQuery()->getData(),true);
             return $data and isset($data['go']) and $data['go'] == 'back';
+        }
+
+        return false;
+    }
+
+    public function isSkipped()
+    {
+        $update = $this->telegramBotApi->update;
+
+        if($update->isCallbackQuery()){
+            $data = json_decode($update->getCallbackQuery()->getData(),true);
+            return $data and isset($data['go']) and $data['go'] == 'skip';
         }
 
         return false;
@@ -88,7 +115,6 @@ class CalendarFormField extends Field
 
     public function afterOverAction()
     {
-
         $update = $this->telegramBotApi->update;
 
         if($update->isCallbackQuery()){
@@ -102,7 +128,6 @@ class CalendarFormField extends Field
 
     public function getFormFieldValue()
     {
-
         $update = $this->telegramBotApi->update;
 
         if($update->isCallbackQuery()){
@@ -113,35 +138,23 @@ class CalendarFormField extends Field
             }
         }
 
-        return false;
+        return null;
     }
 
     private function isLockedDay($year,$month,$day)
     {
         $lock_day = false;
 
-        if(isset($this->lock['every'])){
-            if(isset($this->lock['every']['week']) and
-                !empty($this->lock['every']['week'])
-            ){
-                $lock_day = true;
-            }
+        $mktime = mktime(0,0,0,$month,$day,$year);
 
-            if(isset($this->lock['every']['month']) and
-                !empty($this->lock['every']['month']) and
-                in_array((int)$month,$this->lock['every']['month'])
-            ){
-                $lock_day = true;
-            }
-        }
-
-        if(isset($this->lock['beforeNow']) and $this->lock['beforeNow'] and strtotime("{$year}-{$month}-{$day}") < strtotime('Today')){
+        if ($this->lockedColumnDayNumber == date('N',$mktime))
             $lock_day = true;
-        }
 
-        if(isset($this->lock['days']) and $this->lock['days'] and in_array("{$year}-{$month}-{$d}",$this->lock['days'])){
+        if ($this->lockBeforeNow && $mktime < strtotime('Today'))
             $lock_day = true;
-        }
+
+        if (in_array(date('Y-m-d',$mktime),$this->lockedDays))
+            $lock_day = true;
 
         return $lock_day;
     }

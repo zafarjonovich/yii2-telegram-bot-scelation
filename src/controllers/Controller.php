@@ -140,7 +140,6 @@ class Controller extends \yii\web\Controller
                             ]);
                         }
                     } catch (CallParseException $exception) {
-
                     } catch (\Exception $exception) {
                         throw $exception;
                     }

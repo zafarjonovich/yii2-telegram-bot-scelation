@@ -63,6 +63,8 @@ class FormAction extends \yii\base\Action
          */
         $this->model = \Yii::createObject($configuration['model']);
 
+        $this->model->state = $configuration['modelState'];
+
         $this->fieldState = $configuration['fieldState'];
         $this->modelState = $configuration['modelState'];
         $this->fieldName = $configuration['fieldName'];
@@ -120,11 +122,23 @@ class FormAction extends \yii\base\Action
         return \Yii::createObject(array_merge($fieldData,$this->getFieldOptions()));
     }
 
+    private function goNextStep($field)
+    {
+        if ($this->model->isFilled()) {
+            $field->afterOverAction();
+            $this->callback($this->model->getSuccessRoute());
+        } else {
+            $this->run();
+        }
+    }
+
     public function run()
     {
-        static $callCount = 1;
 
-        if ($callCount > 1)
+
+        static $renderCount = 1;
+
+        if ($renderCount > 1)
             return;
 
         $fieldData = $this->model->getCurrentFormFieldData();
@@ -137,25 +151,26 @@ class FormAction extends \yii\base\Action
 
             $field->atHandling();
 
-            if ($field->goHome()) {
+            $value = '';
+
+            if ($field->isSkipped()) {
+                $this->model->filled($field->name);
+                $this->model->{$field->name} = null;
+                $this->goNextStep($field);
+                return;
+            } else if ($field->goHome()) {
                 $this->goHome($field);
                 return;
             } else if ($field->goBack()) {
                 $this->goBack($field);
                 $this->fieldState = [];
-                $this->afterRun();
                 return;
             } else if (
-                (($value = $field->getFormFieldValue()) !== null) &&
-                $this->model->validateCurrentField($this->fieldName,$value)
+                ((($value = $field->getFormFieldValue()) !== null) &&
+                $this->model->validateCurrentField($this->fieldName,$value))
             ) {
-
-               if ($this->model->isFilled()) {
-                   $this->callback($this->model->getSuccessRoute());
-               } else {
-                   $this->run();
-               }
-
+                $this->model->filled($field->name);
+                $this->goNextStep($field);
                return;
             } else if($errors = $this->model->getErrors($this->fieldName)){
                 $this->model->{$this->fieldName} = null;
@@ -176,7 +191,7 @@ class FormAction extends \yii\base\Action
         $this->fieldState = $field->state;
         $this->fieldName = $field->name;
 
-        $callCount++;
+        $renderCount++;
     }
 
     protected function afterRun()

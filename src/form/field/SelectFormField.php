@@ -16,9 +16,19 @@ class SelectFormField extends Field
 
     const CALLBACL_QUERY_KEY = 'cqk';
 
+    public function isSkipped()
+    {
+        $update = $this->telegramBotApi->update;
+
+        if($this->canSkip && $update->isMessage() && $update->getMessage()->isText()){
+            return $update->getMessage()->getText() == $this->skipText;
+        }
+
+        return false;
+    }
+
     public function goBack()
     {
-
         $update = $this->telegramBotApi->update;
         
         if($this->isInlineKeyboard and $update->isCallbackQuery()){
@@ -27,7 +37,7 @@ class SelectFormField extends Field
         }
 
         if(!$this->isInlineKeyboard and $update->isMessage()){
-            return $update->getMessage()->getText() == \Yii::t('app','Back');
+            return $update->getMessage()->getText() == $this->buttonTextBack;
         }
 
         return false;
@@ -139,10 +149,10 @@ class SelectFormField extends Field
                 }
             }
 
-            return isset($calls[$update->getMessage()->getText()])?$calls[$update->getMessage()->getText()]:false;
+            return isset($calls[$update->getMessage()->getText()])?$calls[$update->getMessage()->getText()]:null;
         }
 
-        return false;
+        return null;
     }
 
     public function render()

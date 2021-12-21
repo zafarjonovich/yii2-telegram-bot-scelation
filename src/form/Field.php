@@ -22,6 +22,8 @@ class Field
 
     public $buttonTextHome = 'Home';
 
+    public $skipText = 'Skip';
+
     public $isInlineKeyboard = false;
 
     public $clearChat = false;
@@ -31,6 +33,8 @@ class Field
     public $name;
 
     public $text;
+
+    public $canSkip = false;
 
     public function atHandling(){
 
@@ -60,6 +64,11 @@ class Field
         return false;
     }
 
+    public function isSkipped()
+    {
+        return false;
+    }
+
     public function render(){
         return false;
     }
@@ -69,6 +78,9 @@ class Field
         $keyboard = new Keyboard($keyboard);
 
         if($this->isInlineKeyboard){
+            if ($this->canSkip)
+                $keyboard->addCallbackDataButton($this->skipText,json_encode(['go'=>'skip']))->newRow();
+
             if($this->canGoToBack)
                 $keyboard->addCallbackDataButton($this->buttonTextBack,json_encode(['go'=>'back']));
 
@@ -77,6 +89,9 @@ class Field
 
             return $keyboard->init();
         }else{
+            if ($this->canSkip)
+                $keyboard->addCustomButton($this->skipText)->newRow();
+
             if($this->canGoToBack)
                 $keyboard->addCustomButton($this->buttonTextBack);
 
