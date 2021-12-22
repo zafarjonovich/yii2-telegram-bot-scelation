@@ -6,7 +6,7 @@ namespace zafarjonovich\Yii2TelegramBotScelation\models;
  * This is the model class for table "state".
  *
  * @property int $id
- * @property int $chat_id
+ * @property int $unique
  * @property string $state
  * @property string|null $created_at
  * @property string|null $updated_at

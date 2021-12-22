@@ -9,6 +9,23 @@ use zafarjonovich\Telegram\update\Update;
 
 class TextFormField extends Field
 {
+
+    public function isSkipped()
+    {
+        /** @var Update $update */
+        $update = $this->telegramBotApi->update;
+
+        if(
+            $update->isMessage() and
+            $update->getMessage()->isText() and
+            $update->getMessage()->getText() == $this->skipText
+        ){
+            return true;
+        }
+
+        return false;
+    }
+
     public function goBack(){
         /** @var Update $update */
         $update = $this->telegramBotApi->update;

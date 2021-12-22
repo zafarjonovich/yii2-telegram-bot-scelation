@@ -79,7 +79,7 @@ class Field
 
         if($this->isInlineKeyboard){
             if ($this->canSkip)
-                $keyboard->addCallbackDataButton($this->skipText,json_encode(['go'=>'skip']))->newRow();
+                $keyboard->newRow()->addCallbackDataButton($this->skipText,json_encode(['go'=>'skip']))->newRow();
 
             if($this->canGoToBack)
                 $keyboard->addCallbackDataButton($this->buttonTextBack,json_encode(['go'=>'back']));
@@ -90,7 +90,7 @@ class Field
             return $keyboard->init();
         }else{
             if ($this->canSkip)
-                $keyboard->addCustomButton($this->skipText)->newRow();
+                $keyboard->newRow()->addCustomButton($this->skipText)->newRow();
 
             if($this->canGoToBack)
                 $keyboard->addCustomButton($this->buttonTextBack);

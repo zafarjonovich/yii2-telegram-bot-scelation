@@ -15,11 +15,11 @@ class DbState extends State
 
     public function init()
     {
-        $state = StateModel::findOne(['chat_id' => $this->unique]);
+        $state = StateModel::findOne(['unique' => $this->unique]);
 
         if($state === null) {
             $state = new StateModel([
-                'chat_id' => $this->unique,
+                'unique' => $this->unique,
                 'created_at' => date('Y-m-d H:i:s'),
                 'state' => []
             ]);
@@ -40,7 +40,7 @@ class DbState extends State
 
     public static function delete($unique)
     {
-        $state = StateModel::findOne(['chat_id' => $unique]);
+        $state = StateModel::findOne(['unique' => $unique]);
 
         return $state->delete();
     }

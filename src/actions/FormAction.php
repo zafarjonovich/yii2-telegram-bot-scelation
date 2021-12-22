@@ -93,6 +93,7 @@ class FormAction extends \yii\base\Action
             'canGoToHome' => $this->model->canGoHome(),
             'buttonTextBack' => $this->model->buttonTextBack,
             'buttonTextHome' => $this->model->buttonTextHome,
+            'skipText' => $this->model->buttonTextSkip,
         ];
     }
 

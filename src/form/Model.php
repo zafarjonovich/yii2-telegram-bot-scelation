@@ -19,6 +19,8 @@ abstract class Model extends \yii\base\Model
 
     public $buttonTextHome = 'Home';
 
+    public $buttonTextSkip = 'Skip';
+
     protected $formValues = [];
 
     /**
@@ -82,11 +84,7 @@ abstract class Model extends \yii\base\Model
 
     public function isEmty()
     {
-        foreach ($this->formFields() as $formField)
-            if (isset($this->{$formField['name']}))
-                return false;
-
-        return true;
+        return !(bool)($this->state['filledFields'] ?? []);
     }
 
     public function isFilled()
@@ -111,13 +109,14 @@ abstract class Model extends \yii\base\Model
 
         $fields = array_reverse($fields);
 
-        foreach ($fields as $field)
-            if (isset($this->{$field['name']})) {
-                $name = $field['name'];
+        foreach ($fields as $field) {
+            $name = $field['name'];
+            if (isset($this->state['filledFields'][$name])) {
                 unset($this->state['filledFields'][$name]);
                 $this->{$name} = null;
                 return true;
             }
+        }
 
         return false;
     }

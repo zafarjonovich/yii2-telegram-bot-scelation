@@ -21,6 +21,8 @@ class MultipleField extends Field
 
     private $isFound = false;
 
+    public $limit;
+
     public function goBack(){
         /** @var Update $update */
         $update = $this->telegramBotApi->update;
@@ -101,6 +103,8 @@ class MultipleField extends Field
     {
         $update = $this->telegramBotApi->update;
 
+        $this->state['answers'] = $this->state['answers'] ?? [];
+
         if (
             $this->canSkip &&
             $update->isMessage() &&
@@ -108,7 +112,7 @@ class MultipleField extends Field
             $message->isText() &&
             ($message->getText() == $this->skipText || $message->getText() == $this->doneText)
         ) {
-            return $this->state['answers'] ?? [];
+            return $this->state['answers'];
         }
 
         $getter = $this->getter;
@@ -116,9 +120,12 @@ class MultipleField extends Field
         $value = $getter($update);
 
         if ($value !== null) {
-            $this->state['answers'] = $this->state['answers'] ?? [];
             $this->state['answers'][] = $value;
             $this->isFound = true;
+        }
+
+        if (is_numeric($this->limit) && count($this->state['answers']) == $this->limit) {
+            return $this->state['answers'];
         }
 
         return null;

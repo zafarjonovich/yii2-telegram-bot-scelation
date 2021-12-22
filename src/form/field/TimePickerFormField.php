@@ -49,7 +49,6 @@ class TimePickerFormField extends Field
                 $this->telegramBotApi->message_id
             );
         }
-
     }
 
     public function goBack(){
@@ -105,12 +104,13 @@ class TimePickerFormField extends Field
 
     public function atHandling()
     {
-        if((bool)$this->telegramBotApi->message){
+        $update = $this->telegramBotApi->update;
+
+        if($update->isMessage()){
             $this->telegramBotApi->deleteMessage(
                 $this->telegramBotApi->chat_id,
                 $this->telegramBotApi->message_id
             );
-            $this->telegramBotApi->message = false;
         }
     }
 
@@ -288,8 +288,6 @@ class TimePickerFormField extends Field
             }
         }
 
-        $keyboard = $this->createNavigatorButtons($keyboard);
-
         return $keyboard;
     }
 
@@ -326,8 +324,6 @@ class TimePickerFormField extends Field
         $keyboard->newRow();
 
         $keyboard->addCallbackDataButton($ok,json_encode(['a'=>self::format($hour).":".self::format($minute)]));
-
-        $keyboard = $this->createNavigatorButtons($keyboard);
 
         return $keyboard;
     }
@@ -372,6 +368,8 @@ class TimePickerFormField extends Field
             $keyboard = $this->generateSelectorKeyboard();
         }
 
+        $keyboard = $this->createNavigatorButtons($keyboard);
+
         $options = [
             'reply_markup' => $keyboard
         ];
@@ -380,7 +378,7 @@ class TimePickerFormField extends Field
         if($update->isMessage()){
             $response = $this->telegramBotApi->sendMessage(
                 $this->telegramBotApi->chat_id,
-                $this->params['text'],
+                $this->text,
                 $options
             );
         } else if ($update->isCallbackQuery()){

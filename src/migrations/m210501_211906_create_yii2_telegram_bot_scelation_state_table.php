@@ -14,7 +14,7 @@ class m210501_211906_create_yii2_telegram_bot_scelation_state_table extends Migr
     {
         $this->createTable('{{%yii2_telegram_bot_scelation_state}}', [
             'id' => $this->primaryKey(),
-            'chat_id' => $this->integer(40)->notNull(),
+            'unique' => $this->char(64)->notNull(),
             'state' => $this->json()->notNull(),
             'created_at' => $this->dateTime(),
             'updated_at' => $this->dateTime(),
@@ -25,7 +25,7 @@ class m210501_211906_create_yii2_telegram_bot_scelation_state_table extends Migr
         $this->createIndex(
             '{{%idx-yii2_telegram_bot_scelation_state-chat_id}}',
             '{{%yii2_telegram_bot_scelation_state}}',
-            'chat_id'
+            'unique'
         );
     }
 
