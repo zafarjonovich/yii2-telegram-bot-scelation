@@ -1,5 +1,7 @@
 <?php
 
+namespace zafarjonovich\Yii2TelegramBotScelation\migrations;
+
 use yii\db\Migration;
 
 /**
@@ -23,7 +25,7 @@ class m210501_211906_create_yii2_telegram_bot_scelation_state_table extends Migr
 
         // creates index for column `chat_id`
         $this->createIndex(
-            '{{%idx-yii2_telegram_bot_scelation_state-chat_id}}',
+            '{{%idx-yii2_telegram_bot_scelation_state-unique}}',
             '{{%yii2_telegram_bot_scelation_state}}',
             'unique'
         );
