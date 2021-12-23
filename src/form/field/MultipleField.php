@@ -15,11 +15,18 @@ class MultipleField extends Field
      */
     public $getter;
 
+    /**
+     * @var \Closure
+     */
+    public $doneValidator;
+
     public $doneText = 'Done';
 
     public $acceptedText = 'Accepted';
 
     private $isFound = false;
+
+    public $minCount;
 
     public $limit;
 
@@ -88,15 +95,10 @@ class MultipleField extends Field
     public function showErrors($errors){
         $text = implode(PHP_EOL.PHP_EOL,$errors);
 
-        $response = $this->telegramBotApi->sendMessage(
+        $this->telegramBotApi->sendMessage(
             $this->telegramBotApi->chat_id,
-            $text,
-            ['reply_markup' => $this->telegramBotApi->makeCustomKeyboard([
-                [['text' => \Yii::t('app','Back')]]])
-            ]
+            $text
         );
-
-        $this->state['message_id'] = $response['result']['message_id'];
     }
 
     public function getFormFieldValue()
@@ -106,12 +108,31 @@ class MultipleField extends Field
         $this->state['answers'] = $this->state['answers'] ?? [];
 
         if (
-            $this->canSkip &&
             $update->isMessage() &&
             ($message = $update->getMessage()) &&
             $message->isText() &&
-            ($message->getText() == $this->skipText || $message->getText() == $this->doneText)
+            $this->canSkip &&
+            $message->getText() == $this->skipText
         ) {
+            return $this->state['answers'];
+        }
+
+        if (
+            $update->isMessage() &&
+            ($message = $update->getMessage()) &&
+            $message->isText() &&
+            $message->getText() == $this->doneText
+        ) {
+
+            $doneValidator = $this->doneValidator;
+
+            $errors = $doneValidator instanceof \Closure ? $doneValidator($this->state['answers']) : null;
+
+            if ($errors !== null) {
+                $this->showErrors($errors);
+                return null;
+            }
+
             return $this->state['answers'];
         }
 
@@ -153,7 +174,7 @@ class MultipleField extends Field
 
         $answers = $this->state['answers'];
 
-        if (count($answers)) {
+        if (count($answers) >= (int)$this->minCount) {
             $keyboard->addCustomButton($this->doneText);
         }
 
