@@ -331,6 +331,7 @@ class TimePickerFormField extends Field
         if ($this->showNowButton) {
             $keyboard->newRow();
             $keyboard->addCallbackDataButton($this->nowText,json_encode(['a'=>date('H:i')]));
+            $keyboard->newRow();
         }
 
         $keyboard->addCallbackDataButton($ok,json_encode(['a'=>self::format($hour).":".self::format($minute)]));

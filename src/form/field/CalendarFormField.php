@@ -261,6 +261,7 @@ class CalendarFormField extends Field
                 $this->todayText,
                 json_encode([$this->name => date('Y-m-d')])
             );
+            $keyboard->newRow();
         }
 
         $keyboard = $this->createNavigatorButtons($keyboard);
