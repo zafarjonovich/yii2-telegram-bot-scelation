@@ -20,10 +20,16 @@ class SelectFormField extends Field
     {
         $update = $this->telegramBotApi->update;
 
-        if($this->canSkip && $update->isMessage() && $update->getMessage()->isText()){
-            return $update->getMessage()->getText() == $this->skipText;
-        }
+        if ($this->canSkip) {
+            if ($update->isMessage() && $update->getMessage()->isText()) {
+                return $update->getMessage()->getText() == $this->skipText;
+            }
 
+            if($this->isInlineKeyboard and $update->isCallbackQuery()){
+                $data = json_decode($update->getCallbackQuery()->getData(),true);
+                return $data and isset($data['go']) and $data['go'] == 'skip';
+            }
+        }
         return false;
     }
 

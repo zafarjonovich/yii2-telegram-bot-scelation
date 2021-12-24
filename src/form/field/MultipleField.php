@@ -153,8 +153,21 @@ class MultipleField extends Field
         return null;
     }
 
-    public function render(){
+    protected function addSkipButton(Keyboard $keyboard)
+    {
+        $answers = $this->state['answers'] ?? [];
 
+        if ($this->canSkip && count($answers) == 0)
+            if ($this->isInlineKeyboard)
+                $keyboard->newRow()->addCallbackDataButton($this->skipText,json_encode(['go'=>'skip']))->newRow();
+            else
+                $keyboard->newRow()->addCustomButton($this->skipText)->newRow();
+
+        return $keyboard;
+    }
+
+    public function render()
+    {
         if (!isset($this->state['answers'])) {
             $this->state['answers'] = [];
         }

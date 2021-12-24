@@ -75,32 +75,39 @@ class Field
         return false;
     }
 
+    protected function addSkipButton(Keyboard $keyboard)
+    {
+        if ($this->canSkip)
+            if ($this->isInlineKeyboard)
+                $keyboard->newRow()->addCallbackDataButton($this->skipText,json_encode(['go'=>'skip']))->newRow();
+            else
+                $keyboard->newRow()->addCustomButton($this->skipText)->newRow();
+
+        return $keyboard;
+    }
+
     public function createNavigatorButtons($keyboard)
     {
         $keyboard = new Keyboard($keyboard);
 
-        if($this->isInlineKeyboard){
-            if ($this->canSkip)
-                $keyboard->newRow()->addCallbackDataButton($this->skipText,json_encode(['go'=>'skip']))->newRow();
+        $keyboard = $this->addSkipButton($keyboard);
 
+        if($this->isInlineKeyboard){
             if($this->canGoToBack)
                 $keyboard->addCallbackDataButton($this->buttonTextBack,json_encode(['go'=>'back']));
 
             if($this->canGoToHome)
                 $keyboard->addCallbackDataButton($this->buttonTextHome,json_encode(['go'=>'home']));
 
-            return $keyboard->init();
-        }else{
-            if ($this->canSkip)
-                $keyboard->newRow()->addCustomButton($this->skipText)->newRow();
-
-            if($this->canGoToBack)
+        }else {
+            if ($this->canGoToBack)
                 $keyboard->addCustomButton($this->buttonTextBack);
 
-            if($this->canGoToHome)
+            if ($this->canGoToHome)
                 $keyboard->addCustomButton($this->buttonTextHome);
 
-            return $keyboard->init();
         }
+
+        return $keyboard->init();
     }
 }
