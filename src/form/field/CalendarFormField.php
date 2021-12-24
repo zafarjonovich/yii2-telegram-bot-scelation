@@ -257,8 +257,6 @@ class CalendarFormField extends Field
 
     public function render()
     {
-
-
         $update = $this->telegramBotApi->update;
 
         if($update->isMessage()){
@@ -281,6 +279,8 @@ class CalendarFormField extends Field
         $options = [
             'reply_markup' =>$keyboard
         ];
+
+        $options = array_merge($this->textOptions,$options);
         
         if((bool)$this->telegramBotApi->message){
             $response = $this->telegramBotApi->sendMessage(

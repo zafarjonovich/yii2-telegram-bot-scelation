@@ -97,7 +97,8 @@ class MultipleField extends Field
 
         $this->telegramBotApi->sendMessage(
             $this->telegramBotApi->chat_id,
-            $text
+            $text,
+            $this->textOptions
         );
     }
 
@@ -183,6 +184,8 @@ class MultipleField extends Field
         if(!empty($keyboard)){
             $options['reply_markup'] = $keyboard;
         }
+
+        $options = array_merge($this->textOptions,$options);
 
         $response = $this->telegramBotApi->sendMessage(
             $this->telegramBotApi->chat_id,

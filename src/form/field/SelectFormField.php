@@ -178,6 +178,8 @@ class SelectFormField extends Field
             'reply_markup' => $this->createNavigatorButtons($keyboard)
         ];
 
+        $options = array_merge($this->textOptions,$options);
+
         if (!isset($this->state['cp'])) {
             $this->deleteCustopmMessage();
         }

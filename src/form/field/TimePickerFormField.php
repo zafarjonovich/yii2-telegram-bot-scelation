@@ -374,6 +374,8 @@ class TimePickerFormField extends Field
             'reply_markup' => $keyboard
         ];
 
+        $options = array_merge($this->textOptions,$options);
+
 
         if($update->isMessage()){
             $response = $this->telegramBotApi->sendMessage(

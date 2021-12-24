@@ -75,12 +75,16 @@ class TextFormField extends Field
     public function showErrors($errors){
         $text = implode(PHP_EOL.PHP_EOL,$errors);
 
+        $options = ['reply_markup' => $this->telegramBotApi->makeCustomKeyboard([
+            [['text' => \Yii::t('app','Back')]]])
+        ];
+
+        $options = array_merge($this->textOptions,$options);
+
         $response = $this->telegramBotApi->sendMessage(
             $this->telegramBotApi->chat_id,
             $text,
-            ['reply_markup' => $this->telegramBotApi->makeCustomKeyboard([
-                [['text' => \Yii::t('app','Back')]]])
-            ]
+            $options
         );
 
         $this->state['message_id'] = $response['result']['message_id'];

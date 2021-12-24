@@ -36,6 +36,8 @@ class Field
 
     public $canSkip = false;
 
+    public $textOptions = [];
+
     public function atHandling(){
 
     }
