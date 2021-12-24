@@ -44,6 +44,10 @@ class CalendarFormField extends Field
 
     public $lockBeforeNow = false;
 
+    public $showTodayButton = false;
+
+    public $todayText = 'Today';
+
     /**
      * @var int this number means if this number set this column will locks
      * Example: $lockedColumnDayNumber = 1; Every monday will locks
@@ -249,6 +253,14 @@ class CalendarFormField extends Field
 
         $next_callback = ['todate'=>date("Y-m",strtotime("First day of next month",strtotime("{$year}-{$month}")))];
         $keyboard->addCallbackDataButton(Emoji::Decode("\\u27a1\\ufe0f"),json_encode($next_callback));
+
+        if ($this->showTodayButton) {
+            $keyboard->newRow();
+            $keyboard->addCallbackDataButton(
+                $this->todayText,
+                json_encode([$this->name => date('Y-m-d')])
+            );
+        }
 
         $keyboard = $this->createNavigatorButtons($keyboard);
 

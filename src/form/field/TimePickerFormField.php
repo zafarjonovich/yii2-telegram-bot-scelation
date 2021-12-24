@@ -40,6 +40,10 @@ class TimePickerFormField extends Field
 
     private $keyboard_type_selector = false;
 
+    public $showNowButton = false;
+
+    public $nowText = 'Now';
+
     public function afterOverAction(){
         $update = $this->telegramBotApi->update;
 
@@ -322,6 +326,11 @@ class TimePickerFormField extends Field
         $keyboard->addCallbackDataButton($down, json_encode(['d'=>'m','h'=>$hour,'m'=>$minute]));
 
         $keyboard->newRow();
+
+        if ($this->showNowButton) {
+            $keyboard->newRow();
+            $keyboard->addCallbackDataButton($this->nowText,json_encode(['a'=>date('H:i')]));
+        }
 
         $keyboard->addCallbackDataButton($ok,json_encode(['a'=>self::format($hour).":".self::format($minute)]));
 
