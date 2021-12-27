@@ -35,8 +35,8 @@ class MultipleField extends Field
         $update = $this->telegramBotApi->update;
 
         if(
-            $update->isMessage() and
-            $update->getMessage()->isText() and
+            $update->isMessage() &&
+            $update->getMessage()->isText() &&
             $update->getMessage()->getText() == $this->buttonTextBack
         ){
             return true;
@@ -65,11 +65,16 @@ class MultipleField extends Field
         /** @var Update $update */
         $update = $this->telegramBotApi->update;
 
-        if(
-            $update->isMessage() and
-            $update->getMessage()->isText() and
-            $update->getMessage()->getText() == $this->skipText
-        ){
+        $answers = $this->state['answers'] ?? [];
+
+        if (
+            $update->isMessage() &&
+            ($message = $update->getMessage()) &&
+            $message->isText() &&
+            $this->canSkip &&
+            $message->getText() == $this->skipText &&
+            count($answers) == 0
+        ) {
             return true;
         }
 
@@ -112,19 +117,8 @@ class MultipleField extends Field
             $update->isMessage() &&
             ($message = $update->getMessage()) &&
             $message->isText() &&
-            $this->canSkip &&
-            $message->getText() == $this->skipText
-        ) {
-            return $this->state['answers'];
-        }
-
-        if (
-            $update->isMessage() &&
-            ($message = $update->getMessage()) &&
-            $message->isText() &&
             $message->getText() == $this->doneText
         ) {
-
             $doneValidator = $this->doneValidator;
 
             $errors = $doneValidator instanceof \Closure ? $doneValidator($this->state['answers']) : null;

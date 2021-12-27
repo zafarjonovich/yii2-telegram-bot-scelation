@@ -135,8 +135,6 @@ class FormAction extends \yii\base\Action
 
     public function run()
     {
-
-
         static $renderCount = 1;
 
         if ($renderCount > 1)
@@ -178,6 +176,8 @@ class FormAction extends \yii\base\Action
                 $field->showErrors($errors);
                 return;
             }
+        } else {
+            $field->state = [];
         }
 
         $newFieldData = $this->model->getCurrentFormFieldData();
