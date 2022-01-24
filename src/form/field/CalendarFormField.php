@@ -11,6 +11,13 @@ use zafarjonovich\Yii2TelegramBotScelation\form\Field;
 
 class CalendarFormField extends Field
 {
+    private const MONTH = 'm';
+
+    private const YEAR = 'y';
+
+    private const DAY = 'd';
+
+    private const CALENDAR = 'c';
 
     public $days = ['M','T','W','T','F','S','S'];
 
@@ -42,11 +49,17 @@ class CalendarFormField extends Field
      */
     public $lockedDays = [];
 
-    public $lockBeforeNow = false;
+    public $lockBeforeNow = true;
 
     public $showTodayButton = false;
 
     public $todayText = 'Today';
+
+    private $go;
+
+    private $year;
+
+    private $month;
 
     /**
      * @var int this number means if this number set this column will locks
@@ -55,7 +68,8 @@ class CalendarFormField extends Field
      */
     public $lockedColumnDayNumber = 0;
 
-    public function goBack(){
+    public function goBack()
+    {
         $update = $this->telegramBotApi->update;
 
         if($update->isCallbackQuery()){
@@ -92,15 +106,27 @@ class CalendarFormField extends Field
 
     public function beforeHandling()
     {
+        $date = new \DateTime($this->date);
+
+        if ($date) {
+            $this->year = $date->format('Y');
+            $this->month = $date->format('m');
+        }
 
         $update = $this->telegramBotApi->update;
 
-        if($update->isCallbackQuery()){
+        if($update->isCallbackQuery()) {
             $data = json_decode($update->getCallbackQuery()->getData(),true);
 
-            if($data and isset($data['todate'])){
-                $this->date = $data['todate'];
-            }
+            if (isset($data['go']))
+                $this->go = $data['go'];
+
+            if (isset($data[self::YEAR]))
+                $this->year = $data[self::YEAR];
+
+            if (isset($data[self::MONTH]))
+                $this->month = $data[self::MONTH];
+
         }
     }
 
@@ -178,9 +204,101 @@ class CalendarFormField extends Field
         return strlen($day) == 1?"0$day":"$day";
     }
 
-    private function getKeyboard()
+    private function getYearKeyboard()
     {
-        $date = new \DateTime($this->date);
+        $lock = Emoji::Decode('\\ud83d\\udd12');
+
+        $default_callback = '-';
+
+        $keyboard = new Keyboard();
+
+        $limit = 25;
+
+        $i = 1;
+
+        $startDate = $this->year;
+
+        for ($year = $this->year;$year < $this->year + $limit;$year++) {
+
+            if ($this->lockBeforeNow && $year < date('Y')) {
+                $keyboard->addCallbackDataButton($lock,$default_callback);
+            } else {
+                $keyboard->addCallbackDataButton($year,json_encode([
+                    'go' => self::MONTH,
+                    self::YEAR => $year
+                ]));
+            }
+
+            if ($i % 5 == 0)
+                $keyboard->newRow();
+
+            $i++;
+        }
+
+        if (!($this->lockBeforeNow && $startDate - 1 < date('Y')))
+            $keyboard->addCallbackDataButton(Emoji::Decode("\\u2b05\\ufe0f"),json_encode([
+                'go' => self::YEAR,
+                self::YEAR => $this->year - $limit
+            ]));
+
+        $keyboard->addCallbackDataButton(Emoji::Decode("\\u27a1\\ufe0f"),json_encode([
+            'go' => self::YEAR,
+            self::YEAR => $year
+        ]));
+
+        $keyboard = $this->createNavigatorButtons($keyboard);
+
+        return $keyboard;
+    }
+
+    private function getMonthsKeyboard()
+    {
+        $lock = Emoji::Decode('\\ud83d\\udd12');
+
+        $default_callback = '-';
+
+        $keyboard = new Keyboard();
+
+        $keyboard->addCallbackDataButton($this->year,json_encode([
+            'go' => self::YEAR,
+            self::YEAR => $this->year
+        ]));
+
+        $keyboard->newRow();
+
+        foreach ($this->months as $index => $month) {
+
+            $n = $index + 1;
+
+            if ($this->lockBeforeNow && $this->year.$this->month < date('Ym')) {
+                $keyboard->addCallbackDataButton($lock,$default_callback);
+            } else {
+                $keyboard->addCallbackDataButton($month,json_encode([
+                    'go' => self::CALENDAR,
+                    self::YEAR => $this->year,
+                    self::MONTH => $n
+                ]));
+            }
+
+            if ($n % 3 == 0)
+                $keyboard->newRow();
+        }
+
+        $keyboard = $this->createNavigatorButtons($keyboard);
+
+        return $keyboard;
+    }
+
+    private function addEmptyButtons($keyboard,$callback,$n)
+    {
+        for($i=0;$i<$n;$i++)
+            $keyboard->addCallbackDataButton($this->getEmptyText(),$callback);
+    }
+
+
+    private function getCalendarKeyboard()
+    {
+        $date = new \DateTime("$this->year-$this->month-1");
 
         $count_days_of_week = 7;
         $default_callback = '-';
@@ -191,7 +309,10 @@ class CalendarFormField extends Field
 
         $keyboard = new Keyboard();
 
-        $keyboard->addCallbackDataButton($this->getHeaderText($year,$month),$default_callback);
+        $keyboard->addCallbackDataButton($this->getHeaderText($year,$month),json_encode([
+            'go' => self::MONTH,
+            self::YEAR => $year
+        ]));
 
         $keyboard->newRow();
 
@@ -203,15 +324,12 @@ class CalendarFormField extends Field
 
         $n = 0;
 
-        if(($first_q = date("N",strtotime("First day of {$year}-{$month}"))-1)%$count_days_of_week){
-            for($i=0;$i<$first_q;$i++){
-                ++$n;
-                $keyboard->addCallbackDataButton($this->getEmptyText(),$default_callback);
-            }
+        if(($first_q = date("N",strtotime("First day of {$year}-{$month}"))-1)%$count_days_of_week) {
+            $this->addEmptyButtons($keyboard,$default_callback,$first_q);
+            $n += $first_q;
         }
 
         $count_of_days = date("d",strtotime("Last day of {$year}-{$month}"));
-
 
         for($d=1;$d<=$count_of_days;$d++){
 
@@ -224,7 +342,6 @@ class CalendarFormField extends Field
                 $callback = $default_callback;
             }
 
-
             $keyboard->addCallbackDataButton($name,json_encode($callback));
 
             if(++$n%$count_days_of_week == 0){
@@ -236,23 +353,24 @@ class CalendarFormField extends Field
 
         $last_q = (($q = ($first_q+$count_of_days)%$count_days_of_week) != 0)?$count_days_of_week-$q:0;
 
-        if($last_q){
-            for($i=0;$i<$last_q;$i++){
-                $keyboard->addCallbackDataButton($this->getEmptyText(),$default_callback);
-            }
-        }
+        if($last_q)
+            $this->addEmptyButtons($keyboard,$default_callback,$last_q);
 
         $keyboard->newRow();
 
+        $dLock = strtotime("23:59",strtotime("Last day of",strtotime("{$year}-{$month}"))) > strtotime("00:01",strtotime("First day of",time())) &&
+        strtotime("00:01",strtotime("First day of",time())) != strtotime("00:01",strtotime("First day of",strtotime("{$year}-{$month}")));
+
         if(
-            strtotime("23:59",strtotime("Last day of",strtotime("{$year}-{$month}"))) > strtotime("00:01",strtotime("First day of",time())) and
-            strtotime("00:01",strtotime("First day of",time())) != strtotime("00:01",strtotime("First day of",strtotime("{$year}-{$month}")))
-        ){
-            $prev_callback = ['todate'=>date("Y-m",strtotime("First day of last month",strtotime("{$year}-{$month}")))];
+            !$this->lockBeforeNow || ($this->lockBeforeNow && $dLock)
+        ) {
+            $prewMonthUnixTime = strtotime("First day of last month",strtotime("{$year}-{$month}"));
+            $prev_callback = ['go' => self::CALENDAR, self::YEAR => date("Y",$prewMonthUnixTime), self::MONTH => date("m",$prewMonthUnixTime)];
             $keyboard->addCallbackDataButton(Emoji::Decode("\\u2b05\\ufe0f"),json_encode($prev_callback));
         }
 
-        $next_callback = ['todate'=>date("Y-m",strtotime("First day of next month",strtotime("{$year}-{$month}")))];
+        $nextMonthUnixTime = strtotime("First day of next month",strtotime("{$year}-{$month}"));
+        $next_callback = ['go' => self::CALENDAR, self::YEAR => date("Y",$nextMonthUnixTime), self::MONTH => date("m",$nextMonthUnixTime)];
         $keyboard->addCallbackDataButton(Emoji::Decode("\\u27a1\\ufe0f"),json_encode($next_callback));
 
         if ($this->showTodayButton) {
@@ -267,6 +385,22 @@ class CalendarFormField extends Field
         $keyboard = $this->createNavigatorButtons($keyboard);
 
         return $keyboard;
+    }
+
+    private function getKeyboard()
+    {
+        switch ($this->go) {
+            case self::MONTH:
+                return $this->getMonthsKeyboard();
+            break;
+
+            case self::YEAR:
+                return $this->getYearKeyboard();
+            break;
+
+            default:
+                return $this->getCalendarKeyboard();
+        }
     }
 
     public function render()
